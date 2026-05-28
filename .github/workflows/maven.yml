@@ -1,4 +1,4 @@
-name: Java CI with Maven
+name: CI-CD
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-  Security-scan:
+    Security-scan:
 
     runs-on: ubuntu-latest
 
@@ -49,7 +49,30 @@ jobs:
        run: sudo apt install gitleaks -y
 
      - name: git-leaks-scan
-       run: gitleaks detect source . -r gitleaks report.json -f json
+       run: |
+         gitleaks detect --source . --report-path gitleaks-report.json --report-format json
+
+     
+     - name: Convert Gitleaks JSON to HTML
+       run: |
+         sudo apt-get install jq -y
+         echo "<html><body><h1>Gitleaks Report</h1><pre>" > gitleaks-report.html
+         cat gitleaks-report.json >> gitleaks-report.html
+         echo "</pre></body></html>" >> gitleaks-report.html
+
+     - name: Upload Gitleaks JSON report
+       uses: actions/upload-artifact@v4
+       with:
+         name: gitleaks-report
+         path: gitleaks-report.json
+
+     - name: Upload Gitleaks HTML report
+       uses: actions/upload-artifact@v4
+       with:
+         name: gitleaks-html-report
+         path: gitleaks-report.html
+    
+  
       
 
     
